@@ -4,29 +4,35 @@ import app from '../../../src/server';
 const request = supertest(app);
 let token = '';
 let orderId: number;
+let userId: number;
+const userEmail = `order.user${Date.now()}@example.com`;
+let createOrderResponse: supertest.Response;
 
 describe('Orders API', () => {
     beforeAll(async () => {
         const user = await request.post('/users').send({
             first_name: 'Order',
             last_name: 'User',
-            email: 'order@example.com',
+            email: userEmail,
             password: 'password123',
         });
         token = user.body.token;
-    });
+        userId = user.body.user.id;
 
-    it('should create a new order', async () => {
-        const res = await request
+        createOrderResponse = await request
             .post('/orders')
             .set('Authorization', `Bearer ${token}`)
             .send({
-                user_id: 1,
+                user_id: userId,
                 status: 'active',
             });
-        expect(res.status).toBe(200);
-        orderId = res.body.id;
-        expect(res.body.status).toBe('active');
+        orderId = createOrderResponse.body.id;
+    });
+
+    it('should create a new order', async () => {
+        expect(createOrderResponse.status).toBe(200);
+        expect(orderId).toBeDefined();
+        expect(createOrderResponse.body.status).toBe('active');
     });
 
     it('should get all orders', async () => {
