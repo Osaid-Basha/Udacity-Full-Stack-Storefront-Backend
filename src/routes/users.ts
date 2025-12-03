@@ -9,18 +9,18 @@ router.post('/', async (req: Request, res: Response) => {
     try {
         const created = await userModel.create(req.body);
         const token = await userModel.authenticate(req.body.email, req.body.password);
-        res.status(201).json({ user: created, token });
+        res.status(200).json({ user: created, token });
     } catch (err) {
         res.status(400).json({ error: (err as Error).message });
     }
 });
 
-router.post('/authenticate', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         const token = await userModel.authenticate(email, password);
         if (!token) return res.status(401).json({ error: 'Invalid credentials' });
-        res.json({ token });
+        res.status(200).json({ token });
     } catch (err) {
         res.status(400).json({ error: (err as Error).message });
     }

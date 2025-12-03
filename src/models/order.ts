@@ -134,6 +134,33 @@ export class OrderModel {
         }
     }
 
+    async getCurrentOrderByUser(userId: number): Promise<Order> {
+        try {
+            const conn = await pool.connect();
+            const sql = `SELECT * FROM orders WHERE user_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1`;
+            const result = await conn.query(sql, [userId]);
+            conn.release();
+            if (result.rows.length === 0) {
+                throw new Error(`No active order for user ${userId}`);
+            }
+            return result.rows[0];
+        } catch (err) {
+            throw new Error(`Could not get current order for user ${userId}: ${err}`);
+        }
+    }
+
+    async getCompletedOrdersByUser(userId: number): Promise<Order[]> {
+        try {
+            const conn = await pool.connect();
+            const sql = `SELECT * FROM orders WHERE user_id = $1 AND status = 'completed' ORDER BY updated_at DESC`;
+            const result = await conn.query(sql, [userId]);
+            conn.release();
+            return result.rows;
+        } catch (err) {
+            throw new Error(`Could not get completed orders for user ${userId}: ${err}`);
+        }
+    }
+
     async updateStatus(id: number, status: string): Promise<Order> {
         try {
             const conn = await pool.connect();
